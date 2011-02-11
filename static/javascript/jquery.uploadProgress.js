@@ -9,9 +9,10 @@
 */
 (function($) {
   $.fn.uploadProgress = function(options) {
+          alert('extend');
   options = $.extend({
     dataType: "json",
-    interval: 500,
+    interval: 2000,
     progressBar: "#progressbar",
     progressUrl: "/progress",
     start: function() {},
@@ -20,8 +21,8 @@
     success: function() {},
     error: function() {},
     preloadImages: [],
-    uploadProgressPath: '/static/javascript/jquery.uploadProgress.js',
-    jqueryPath: '/static/javascript/jquery.js',
+    uploadProgressPath: '/static/javascripts/jquery.uploadProgress.js',
+    jqueryPath: '/static/javascripts/jquery.js',
     timer: ""
   }, options);
   
@@ -61,7 +62,7 @@
   });
   
   return this.each(function(){
-    $(this).bind('submit', function(e) {
+    $(this).bind('submit', function() {
       var uuid = "";
       for (i = 0; i < 32; i++) { uuid += Math.floor(Math.random() * 16).toString(16); }
       
@@ -71,15 +72,14 @@
       options.start();
  
       /* patch the form-action tag to include the progress-id if X-Progress-ID has been already added just replace it */
-      var action = null;
       if(old_id = /X-Progress-ID=([^&]+)/.exec($(this).attr("action"))) {
+        var action = $(this).attr("action").replace(old_id[1], uuid);
         $(this).attr("action", action);
       } else {
-        $(this).attr("action", jQuery(this).attr("action") + "?X-Progress-ID=" + uuid);
+       $(this).attr("action", jQuery(this).attr("action") + "?X-Progress-ID=" + uuid);
       }
       var uploadProgress = $.browser.safari ? progressFrame.jQuery.uploadProgress : jQuery.uploadProgress;
       options.timer = window.setInterval(function() { uploadProgress(this, options) }, options.interval);
-      $(this).ajaxSubmit(options);
     });
   });
   };
@@ -89,9 +89,6 @@ jQuery.uploadProgress = function(e, options) {
     type: "GET",
     url: options.progressUrl + "?X-Progress-ID=" + options.uuid,
     dataType: options.dataType,
-    beforeSend: function(data){
-            alert('before send:'+eval(data));
-    },
     success: function(upload) {
       if (upload.state == 'uploading') {
         upload.percents = Math.floor((upload.received / upload.size)*1000)/10;
