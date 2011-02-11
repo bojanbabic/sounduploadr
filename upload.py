@@ -16,17 +16,17 @@ BUCKET_URI='https://s3-eu-west-1.amazonaws.com/soundcloudr/'
 class MainHandler(tornado.web.RequestHandler):
         def get(self):
                 self.set_header('Content-Type', 'text/html')
-                self.render("templates/upload.html.cp.1", title="Uplaod test" , data= [])
-                #self.render("index.html", title="Uplaod test" , data= [])
+                #self.render("templates/upload.html.cp.1", title="Uplaod test" , data= [])
+                self.render("index.html", title="Uplaod test" , data= [])
 class UploadHandler(tornado.web.RequestHandler):
         def post(self):
                 title = self.get_argument('title', default=None)
                 self.set_header('Content-Type', 'text/html')
                 title = self.get_argument('title', 'burning up inside')
                 progressID = self.get_argument('X-Progress-ID' , default=None)
-                filename = self.get_argument('file.name', default=None)
-                path = self.get_argument('file.path', default=None)
-                size = self.get_argument('file.size', default=None)
+                filename = self.get_argument('media_file.name', default=None)
+                path = self.get_argument('media_file.path', default=None)
+                size = self.get_argument('media_file.size', default=None)
                 signal = self.get_argument('signal', default=None)
                 self.write('message:%s<br>' % title)
                 self.write('filename %s<br>' % filename)
@@ -92,7 +92,7 @@ class Util:
 settings = {'static_path': os.path.join(os.path.dirname(__file__), "static")}
 application=tornado.web.Application([
                         (r"/", MainHandler),
-                        (r"/upload", UploadHandler),
+                        (r"/uload", UploadHandler),
                         ], **settings)
 
 if __name__ == "__main__":
