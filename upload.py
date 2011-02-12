@@ -18,6 +18,27 @@ class MainHandler(tornado.web.RequestHandler):
                 self.set_header('Content-Type', 'text/html')
                 #self.render("templates/upload.html.cp.1", title="Uplaod test" , data= [])
                 self.render("index.html", title="Uplaod test" , data= [])
+class SendText(tornado.web.RequestHandler):
+        def get(self):
+                title = self.get_argument('title', 'burning up inside')
+                signal = self.get_argument('signal', default=None)
+                self.write('title:%s<br>' % title)
+                self.write('signal:%s<br>' % signal)
+                filename='test.png'
+                filedir='/tmp'
+
+                u = Util()
+                
+                fileNameS3=u.transferS3FromFile(filename, filedir)
+                titleNameS3=u.transferS3FromString(title)
+                fileUrl = BUCKET_URI+fileNameS3
+                titleUrl = BUCKET_URI+titleNameS3
+                if fileNameS3 is not None:
+                        self.write("<a href=\"%s\">%s</a><br>" %(fileUrl ,fileUrl))
+                        self.write("<a href=\"%s\">%s</a>" %(titleUrl,titleUrl))
+                else:
+                        self.write('hm something got wrong with file transfer')
+
 class UploadHandler(tornado.web.RequestHandler):
         def post(self):
                 title = self.get_argument('title', default=None)
@@ -33,20 +54,16 @@ class UploadHandler(tornado.web.RequestHandler):
                 self.write('path %s<br>' % path)
                 self.write('progressID%s<br>' % progressID)
                 self.write('size %s<br>' % size) 
-        def get(self):
-                title = self.get_argument('title', 'burning up inside')
-                signal = self.get_argument('signal', default=None)
-                self.write('title:%s<br>' % title)
-                self.write('signal:%s<br>' % signal)
-                filename='test.png'
-                filedir='/tmp'
-                
-                fileNameS3=self.transferS3FromFile(filename, filedir)
-                titleNameS3=self.transferS3FromString(title)
-                if fileNameS3 is not None:
-                        self.write(BUCKET_URI+fileNameS3)
-                else:
-                        self.write('hm something got wrong with file transfer')
+
+               
+class Util:
+        @staticmethod
+        def getHash():
+                now_str = str(int(time.time()))
+                rnd_str = str(random.randrange(0,1000))
+
+                hash_str = str(hash(str(now_str + '_' + rnd_str )))
+                return hash_str[1:]
 
         def savefile(self, filename, body):
                 fn = os.path.basename("%s_%s" %(filename,str(int(time.time()))))
@@ -61,7 +78,7 @@ class UploadHandler(tornado.web.RequestHandler):
 
                 return k.key
 
-        def transferS3FromString(self, title):
+        def transferS3FromString(self,title):
                 k = self.getBucketKey()
                 k.key='title_'+Util.getHash()
                 k.set_contents_from_string(title)
@@ -78,21 +95,13 @@ class UploadHandler(tornado.web.RequestHandler):
                 return k
 
                
-               
-class Util:
-        @staticmethod
-        def getHash():
-                now_str = str(int(time.time()))
-                rnd_str = str(random.randrange(0,1000))
-
-                hash_str = str(hash(str(now_str + '_' + rnd_str )))
-                return hash_str[1:]
 
 
 settings = {'static_path': os.path.join(os.path.dirname(__file__), "static")}
 application=tornado.web.Application([
                         (r"/", MainHandler),
                         (r"/uload", UploadHandler),
+                        (r"/send_text", SendText),
                         ], **settings)
 
 if __name__ == "__main__":
