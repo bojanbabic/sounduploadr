@@ -33,14 +33,11 @@ function fetch(uuid) {
                                 /* poor-man JSON parser */
                                 //var upload = eval(req.responseText);
                                 var upload = JSON.parse(req.responseText);
-                                alert(JSON.stringify(upload));
 
                                 document.getElementById('response').innerHTML = upload.state;
 
                                 /* change the width if the inner progress-bar */
                                 if (upload.state == 'done' || upload.state == 'uploading') {
-                                        alert('upload received : '+ upload.received);
-                                        alert('upload size: '+ upload.size);
                                         bar = document.getElementById('progressbar');
                                         w = 400 * upload.received / upload.size;
                                         bar.style.width = w + 'px';
@@ -51,7 +48,6 @@ function fetch(uuid) {
                                 /* we are done, stop the interval */
                                 if (upload.state == 'done') {
                                         window.clearTimeout(interval);
-                                        alert(bar_updated);
                                         if (bar_updated == false){
                                                 bar = document.getElementById('progressbar');
                                                 bar.style.width = 400 + 'px';
@@ -69,14 +65,13 @@ function sendTitle(){
                 title=document.getElementById('title').value;
                 alert('title:'+title);
                 params = "title="+title;
-                req.open("GET", "/uload?"+params, 0);
+                req.open("GET", "/send_text?"+params, 0);
                 req.setRequestHeader("Content-length", params.length);
                 req.setRequestHeader("X-Progress-ID", uuid);
                 //req.setRequestHeader("Connection", "close");
 
                 req.send(null);
                 document.getElementById('response').innerHTML=req.responseText;
-                alert(req.responseText);
 
         }catch(e){alert(e);}
 }
