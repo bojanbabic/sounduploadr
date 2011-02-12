@@ -30,17 +30,14 @@ function fetch(uuid) {
         req.onreadystatechange = function () {
                 if (req.readyState == 4) {
                         if (req.status == 200) {
+				try{
                                 /* poor-man JSON parser */
-                                //var upload = eval(req.responseText);
-                                var upload = JSON.parse(req.responseText);
-                                alert(JSON.stringify(upload));
+                                var upload = eval(req.responseText);
 
                                 document.getElementById('response').innerHTML = upload.state;
 
                                 /* change the width if the inner progress-bar */
                                 if (upload.state == 'done' || upload.state == 'uploading') {
-                                        alert('upload received : '+ upload.received);
-                                        alert('upload size: '+ upload.size);
                                         bar = document.getElementById('progressbar');
                                         w = 400 * upload.received / upload.size;
                                         bar.style.width = w + 'px';
@@ -51,13 +48,15 @@ function fetch(uuid) {
                                 /* we are done, stop the interval */
                                 if (upload.state == 'done') {
                                         window.clearTimeout(interval);
-                                        alert(bar_updated);
                                         if (bar_updated == false){
                                                 bar = document.getElementById('progressbar');
                                                 bar.style.width = 400 + 'px';
                                         }
-                                        sendTitle();
+                                        //sendTitle();
                                 }
+				}catch(e){
+					alert(e);
+				}
                         }
                 }
         }
