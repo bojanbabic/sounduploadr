@@ -32,7 +32,12 @@ function fetch(uuid) {
                         if (req.status == 200) {
 				try{
                                 /* poor-man JSON parser */
+<<<<<<< HEAD
                                 var upload = eval(req.responseText);
+=======
+                                //var upload = eval(req.responseText);
+                                var upload = JSON.parse(req.responseText);
+>>>>>>> 0ee83b0c3b86e61a66ecab03d1e0f53b22274cd8
 
                                 document.getElementById('response').innerHTML = upload.state;
 
@@ -68,14 +73,13 @@ function sendTitle(){
                 title=document.getElementById('title').value;
                 alert('title:'+title);
                 params = "title="+title;
-                req.open("GET", "/uload?"+params, 0);
+                req.open("GET", "/send_text?"+params, 0);
                 req.setRequestHeader("Content-length", params.length);
                 req.setRequestHeader("X-Progress-ID", uuid);
                 //req.setRequestHeader("Connection", "close");
 
                 req.send(null);
                 document.getElementById('response').innerHTML=req.responseText;
-                alert(req.responseText);
 
         }catch(e){alert(e);}
 }
