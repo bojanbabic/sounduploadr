@@ -12,6 +12,7 @@ AWS_ACCESS_KEY='AKIAJ5TKKYN3Q7BPXCBQ'
 AWS_SECRET_KEY='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'
 BUCKET_NAME='soundcloudr'
 BUCKET_URI='https://s3-eu-west-1.amazonaws.com/soundcloudr/'
+TMP_FILE_STORAGE='/home/ec2-user/sounduploadr/tmp/'
 
 class MainHandler(tornado.web.RequestHandler):
         def get(self):
@@ -25,11 +26,10 @@ class SendText(tornado.web.RequestHandler):
                 self.write('title:%s<br>' % title)
                 self.write('signal:%s<br>' % signal)
                 filename='test.png'
-                filedir='/tmp'
 
                 u = Util()
                 
-                fileNameS3=u.transferS3FromFile(filename, filedir)
+                fileNameS3=u.transferS3FromFile(filename, TMP_FILE_STORAGE)
                 titleNameS3=u.transferS3FromString(title)
                 fileUrl = BUCKET_URI+fileNameS3
                 titleUrl = BUCKET_URI+titleNameS3

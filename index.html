@@ -32,12 +32,7 @@ function fetch(uuid) {
                         if (req.status == 200) {
 				try{
                                 /* poor-man JSON parser */
-<<<<<<< HEAD
                                 var upload = eval(req.responseText);
-=======
-                                //var upload = eval(req.responseText);
-                                var upload = JSON.parse(req.responseText);
->>>>>>> 0ee83b0c3b86e61a66ecab03d1e0f53b22274cd8
 
                                 document.getElementById('response').innerHTML = upload.state;
 
@@ -57,7 +52,7 @@ function fetch(uuid) {
                                                 bar = document.getElementById('progressbar');
                                                 bar.style.width = 400 + 'px';
                                         }
-                                        //sendTitle();
+                                        sendTitle();
                                 }
 				}catch(e){
 					alert(e);
