@@ -10,6 +10,11 @@
 interval = null;
 
 function openProgressBar() {
+	/* reset progress bar */
+        bar = document.getElementById('progressbar');
+        bar.style.width = '0px';
+	/* prevent resubmit */
+	//document.getElementById('upload').disabled = true;
         /* generate random progress-id */
         uuid = "";
         for (i = 0; i < 32; i++) {
@@ -33,6 +38,7 @@ function fetch(uuid) {
 				try{
                                 /* poor-man JSON parser */
                                 var upload = eval(req.responseText);
+                                //var upload = JSON.parse(req.responseText);
 
                                 document.getElementById('response').innerHTML = upload.state;
 
@@ -66,11 +72,12 @@ function sendTitle(){
         try{
                 req = new XMLHttpRequest();
                 title=document.getElementById('title').value;
-                alert('title:'+title);
                 params = "title="+title;
+		params += "&X-Progress-ID="+uuid;
                 req.open("GET", "/send_text?"+params, 0);
                 req.setRequestHeader("Content-length", params.length);
-                req.setRequestHeader("X-Progress-ID", uuid);
+		req.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
+                //req.setRequestHeader("X-Progress-ID", uuid);
                 //req.setRequestHeader("Connection", "close");
 
                 req.send(null);
@@ -82,7 +89,7 @@ function sendTitle(){
 </head>
 
 <body>  
-<form id="upload" enctype="multipart/form-data" action="/uload" method="post"  target="uploadframe" onsubmit="try{openProgressBar(); return true;}catch(e){alert(e);}">
+<form id="upload"  name="upload" enctype="multipart/form-data" action="/uload" method="post"  target="uploadframe" onsubmit="try{openProgressBar(); return true;}catch(e){alert(e);}">
 <input id="title" name="title" type="text" />
 <input name="media_file" type="file"/>
 <input type="submit" value="Upload"/>
