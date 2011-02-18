@@ -8,8 +8,13 @@
 <script src="/static/javascript/jquery.uploadProgress.js"></script>
 <script type="text/javascript">
 interval = null;
+form_submitted=false;
 
 function openProgressBar() {
+	if (form_submitted){
+		alert('Upload in progress please be patient :)');
+		return false;
+	}
 	/* reset progress bar */
         bar = document.getElementById('progressbar');
         bar.style.width = '0px';
@@ -19,7 +24,7 @@ function openProgressBar() {
 		return false;
 	}
 	/* prevent resubmit */
-	//document.getElementById('upload').disabled = true;
+	form_submitted = true;
         /* generate random progress-id */
         uuid = "";
         for (i = 0; i < 32; i++) {
@@ -30,6 +35,7 @@ function openProgressBar() {
 
         /* call the progress-updater every 1000ms */
         interval = window.setInterval( function () {  fetch(uuid);  }, 1000 );
+	form_submitted = false;
 }
 
 function fetch(uuid) {
@@ -67,10 +73,12 @@ function fetch(uuid) {
                                 }
 				if (upload.state == 'error' && upload.status == '413'){
 					document.getElementById('response').innerHTML = 'Exceeded max upload size';
+					form_submitted = false;
 					return;
 				}
 				if (upload.state == 'error'){
 					document.getElementById('response').innerHTML = upload.status;
+					form_submitted = false;
 					return;
 				}
 				
@@ -96,6 +104,7 @@ function sendTitle(){
 
                 req.send(null);
                 document.getElementById('response').innerHTML=req.responseText;
+		form_submitted = false;
 
         }catch(e){alert(e);}
 }
