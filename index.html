@@ -13,6 +13,11 @@ function openProgressBar() {
 	/* reset progress bar */
         bar = document.getElementById('progressbar');
         bar.style.width = '0px';
+	file_selected = document.getElementById('media_file').value;
+	if (file_selected == ''){
+		alert('Must select file before upload');
+		return false;
+	}
 	/* prevent resubmit */
 	//document.getElementById('upload').disabled = true;
         /* generate random progress-id */
@@ -60,6 +65,15 @@ function fetch(uuid) {
                                         }
                                         sendTitle();
                                 }
+				if (upload.state == 'error' && upload.status == '413'){
+					document.getElementById('response').innerHTML = 'Exceeded max upload size';
+					return;
+				}
+				if (upload.state == 'error'){
+					document.getElementById('response').innerHTML = upload.status;
+					return;
+				}
+				
 				}catch(e){
 					alert(e);
 				}
@@ -89,9 +103,9 @@ function sendTitle(){
 </head>
 
 <body>  
-<form id="upload"  name="upload" enctype="multipart/form-data" action="/uload" method="post"  target="uploadframe" onsubmit="try{openProgressBar(); return true;}catch(e){alert(e);}">
+<form id="upload"  name="upload" enctype="multipart/form-data" action="/uload" method="post"  target="uploadframe" onsubmit="try{this.disabled = true; openProgressBar(); return true;}catch(e){alert(e);}">
 <input id="title" name="title" type="text" />
-<input name="media_file" type="file"/>
+<input id="media_file" name="media_file" type="file"/>
 <input type="submit" value="Upload"/>
 </form>
 
