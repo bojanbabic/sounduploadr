@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import os, time, logging, random, urllib
+import os, time, logging, random, urllib, shutil, memcache
 
 import tornado.httpserver
 import tornado.ioloop
@@ -16,6 +16,11 @@ AWS_SECRET_KEY='xAQfMKC91i4C+qdP70UDSGUjCya80ayKJchACY7J'
 BUCKET_NAME='soundcloudr'
 BUCKET_URI='https://s3-eu-west-1.amazonaws.com/soundcloudr/'
 #TMP_FILE_STORAGE='/home/ec2-user/sounduploadr/tmp/'
+FILE_UPLOAD_STORAGE='/var/www/sounduploadr/file/'
+FILE_UPLOAD_URI='/file/'
+
+
+mc = memcache.Client(['127.0.0.1:11211'], debug = 1)
 
 class MainHandler(tornado.web.RequestHandler):
         def get(self):
@@ -24,30 +29,34 @@ class MainHandler(tornado.web.RequestHandler):
                 self.render("index.html", title="Upload test" , data= [])
 class SendText(tornado.web.RequestHandler):
         def get(self):
-                #title = tornado.escape.utf8(self.get_argument('title', None))
-                title = unicode(self.get_argument('title', ''))
+                title = tornado.escape.utf8(self.get_argument('title', ''))
+                #title = unicode(self.get_argument('title', ''))
                 progressID = self.get_argument('X-Progress-ID', None)
 
 		s3File = None
+		check_pID = mc.get(str(progressID))
 
-		if progressID is None:
-			logging.info('Progress Id is missing')
-			self.write('Request can\'t be proceesed without progressID')
+		if progressID is None or not check_pID:
+			logging.info('Progress Id is missing or invalid')
+			self.write('Request can\'t be proceesed without proper progressID')
 			return
 		hashProgressID = Util.getHash(progressID)
 
 		if len(title) > 0:
                 	s3File = Util.transferS3FromString(title, progressID)
 			titleUrl = BUCKET_URI + 'title_'+ hashProgressID
-			self.write("Title '%s' saved in file on location:" % title)
-                        self.write("<a href=\"%s\">%s</a>" %(titleUrl,titleUrl))
+			self.write("Title '%s' backup location:" % title)
+                        self.write("<a href=\"%s\">%s</a><br>" %(titleUrl,titleUrl))
                 else:
-                        self.write('hm something got wrong with title data transfer: no data<br>')
+                        self.write('Title: no data<br>')
 
-                fileUrl = BUCKET_URI + 'file_'+ hashProgressID
+                fileUrl = FILE_UPLOAD_URI + 'file_'+ hashProgressID
+                backupFileUrl = BUCKET_URI + 'file_'+ hashProgressID
 
-                self.write("File saved:")
+                self.write("File location:")
                 self.write("<a href=\"%s\">%s</a><br>" %(fileUrl ,fileUrl))
+                self.write("backup location (soon available):")
+                self.write("<a href=\"%s\">%s</a><br>" %(backupFileUrl ,backupFileUrl))
 
 class UploadHandler(tornado.web.RequestHandler):
         def post(self):
@@ -58,27 +67,26 @@ class UploadHandler(tornado.web.RequestHandler):
                 path = self.get_argument('media_file.path', default=None)
                 size = self.get_argument('media_file.size', default=None)
 
-
 		if path is None:
 			logging.info('No file uploaded')
 			return
 
+		if progressID is None:
+			logging.info('Progress Id is missing')
+			self.write('Request can\'t be proceesed without progressID')
+			return
+		hashProgressID = Util.getHash(progressID)
+		mc.set(str(progressID), '1')
+		src=path
+		dst='%sfile_%s' %(FILE_UPLOAD_STORAGE, hashProgressID)
+		shutil.move(src,dst)
+
                 #fileNameS3=u.transferS3FromFile(path, TMP_FILE_STORAGE, progressID)
-                fileNameS3=Util.transferS3FromFile(path, progressID)
-                fileUrl = BUCKET_URI+fileNameS3
+                #fileNameS3=Util.transferS3FromFile(path, progressID)
+                #fileUrl = BUCKET_URI+fileNameS3
 
-                self.write('message:%s<br>' % title)
-                logging.error('message:%s<br>' % title)
-                self.write('filename %s<br>' % filename)
-                logging.error('filename %s<br>' % filename)
-                self.write('path:%s<br>' % path)
-                logging.error('path:%s<br>' % path)
-                self.write('progressID:%s<br>' % progressID)
-                logging.error('progressID:%s<br>' % progressID)
-                self.write('size %s<br>' % size) 
-                logging.error('size %s<br>' % size) 
-
-               
+                self.write('message:%s<br>filename %s<br>path:%s<br>progressID:%s<br>size %s<br>' % (title, filename, path, progressID, size))
+                
 class Util:
         @staticmethod
         def getHash(string):
