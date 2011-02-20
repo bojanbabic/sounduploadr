@@ -4,8 +4,6 @@
 <head>
 <title>Test for Soundcloud:File Upload Progress</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<script src="/static/javascript/jquery.js"></script>
-<script src="/static/javascript/jquery.uploadProgress.js"></script>
 <script type="text/javascript">
 interval = null;
 form_submitted=false;
@@ -46,10 +44,7 @@ function fetch(uuid) {
         req.onreadystatechange = function () {
                 if (req.readyState == 4) {
                         if (req.status == 200) {
-				try{
-                                /* poor-man JSON parser */
                                 var upload = eval(req.responseText);
-                                //var upload = JSON.parse(req.responseText);
 
                                 document.getElementById('response').innerHTML = upload.state;
 
@@ -82,16 +77,12 @@ function fetch(uuid) {
 					return;
 				}
 				
-				}catch(e){
-					alert(e);
-				}
                         }
                 }
         }
         req.send(null);
 }
 function sendTitle(){
-        try{
                 req = new XMLHttpRequest();
                 title=document.getElementById('title').value;
                 params = "title="+title;
@@ -99,23 +90,22 @@ function sendTitle(){
                 req.open("GET", "/send_text?"+params, 0);
                 req.setRequestHeader("Content-length", params.length);
 		req.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
-                //req.setRequestHeader("X-Progress-ID", uuid);
-                //req.setRequestHeader("Connection", "close");
 
                 req.send(null);
                 document.getElementById('response').innerHTML=req.responseText;
 		form_submitted = false;
-
-        }catch(e){alert(e);}
 }
 </script>
 </head>
 
 <body>  
+<div style="border:1px solid #fff;width:498px;margin:0 auto;padding:30px">
 <form id="upload"  name="upload" enctype="multipart/form-data" action="/uload" method="post"  target="uploadframe" onsubmit="try{this.disabled = true; openProgressBar(); return true;}catch(e){alert(e);}">
-<input id="title" name="title" type="text" />
-<input id="media_file" name="media_file" type="file"/>
-<input type="submit" value="Upload"/>
+<div style="display: block" >
+	<div style="margin-bottom: 20px"><label for="title"><input id="title" name="title" type="text" size="45px" /></label></div>
+	<div style="margin-bottom: 30px"><input id="media_file" name="media_file" type="file"/></div>
+	<div><input type="submit" value="Upload"/></div>
+</div>
 </form>
 
 <iframe id="uploadframe" name="uploadframe" width="0" height="0" frameborder="0" border="0" src="about:blank"></iframe>
@@ -127,6 +117,7 @@ function sendTitle(){
 </div>
 <div id="percents"></div>
 <div id="response"></div>
+</div>
 </body>
 </html>
 

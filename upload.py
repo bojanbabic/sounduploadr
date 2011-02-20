@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import os, time, logging, random, urllib, shutil, memcache
+import os, time, logging, random, urllib, shutil, memcache, ConfigParser
 
 import tornado.httpserver
 import tornado.ioloop
@@ -11,14 +11,15 @@ from hmac import new as hmac
 from httplib import HTTP
 from urlparse import urlparse
 
-AWS_ACCESS_KEY='AKIAJ5TKKYN3Q7BPXCBQ'
-AWS_SECRET_KEY='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'
-BUCKET_NAME='soundcloudr'
-BUCKET_URI='https://s3-eu-west-1.amazonaws.com/soundcloudr/'
-#TMP_FILE_STORAGE='/home/ec2-user/sounduploadr/tmp/'
-FILE_UPLOAD_STORAGE='/var/www/sounduploadr/file/'
-FILE_UPLOAD_URI='/file/'
+config = ConfigParser.ConfigParser()
+config.read('config.ini')
 
+AWS_ACCESS_KEY=config.get('s3','AWS_ACCESS_KEY')
+AWS_SECRET_KEY=config.get('s3','AWS_SECRET_KEY')
+BUCKET_NAME=config.get('s3','BUCKET_NAME')
+BUCKET_URI=config.get('s3','BUCKET_URI')
+FILE_UPLOAD_URI=config.get('upload','FILE_UPLOAD_URI')
+FILE_UPLOAD_STORAGE=config.get('upload','FILE_UPLOAD_STORAGE')
 
 mc = memcache.Client(['127.0.0.1:11211'], debug = 1)
 
@@ -33,7 +34,6 @@ class SendText(tornado.web.RequestHandler):
                 #title = unicode(self.get_argument('title', ''))
                 progressID = self.get_argument('X-Progress-ID', None)
 
-		s3File = None
 		check_pID = mc.get(str(progressID))
 
 		if progressID is None or not check_pID:
@@ -43,7 +43,7 @@ class SendText(tornado.web.RequestHandler):
 		hashProgressID = Util.getHash(progressID)
 
 		if len(title) > 0:
-                	s3File = Util.transferS3FromString(title, progressID)
+                	Util.transferS3FromString(title, progressID)
 			titleUrl = BUCKET_URI + 'title_'+ hashProgressID
 			self.write("Title '%s' backup location:" % title)
                         self.write("<a href=\"%s\">%s</a><br>" %(titleUrl,titleUrl))
@@ -55,8 +55,8 @@ class SendText(tornado.web.RequestHandler):
 
                 self.write("File location:")
                 self.write("<a href=\"%s\">%s</a><br>" %(fileUrl ,fileUrl))
-                self.write("backup location (soon available):")
-                self.write("<a href=\"%s\">%s</a><br>" %(backupFileUrl ,backupFileUrl))
+                #self.write("backup location (soon available):")
+                #self.write("<a href=\"%s\">%s</a><br>" %(backupFileUrl ,backupFileUrl))
 
 class UploadHandler(tornado.web.RequestHandler):
         def post(self):
@@ -88,20 +88,20 @@ class UploadHandler(tornado.web.RequestHandler):
                 self.write('message:%s<br>filename %s<br>path:%s<br>progressID:%s<br>size %s<br>' % (title, filename, path, progressID, size))
                 
 class Util:
-        @staticmethod
-        def getHash(string):
+        @classmethod
+        def getHash(cls,string):
                 hash_str = str(hash(string))
                 return hash_str[1:]
 
-        @staticmethod
-        def savefile(filename, body):
+        @classmethod
+        def savefile(cls, filename, body):
                 fn = os.path.basename("%s_%s" %(filename,str(int(time.time()))))
                 open('files/'+ fn, 'wb').write(body)
                 #logging.info('file %s have been uploaded to server' % on)
 
         #def transferS3FromFile(self, filename, filedir, progressID):
-        @staticmethod
-        def transferS3FromFile(path, progressID):
+        @classmethod
+        def transferS3FromFile(cls,path, progressID):
                 k = Util.getBucketKey()
                 k.key='file_'+Util.getHash(progressID)
                 k.set_contents_from_filename(path)
@@ -109,8 +109,8 @@ class Util:
 
                 return k.key
 
-        @staticmethod
-        def transferS3FromString(title, progressID):
+        @classmethod
+        def transferS3FromString(cls, title, progressID):
                 k = Util.getBucketKey()
 		hash_string = Util.getHash(progressID)
                 k.key='title_'+ hash_string
@@ -119,23 +119,14 @@ class Util:
 
                 return k.key
 
-        @staticmethod
-        def getBucketKey():
+        @classmethod
+        def getBucketKey(cls):
                 from boto.s3.connection import S3Connection
                 conn=S3Connection(AWS_ACCESS_KEY, AWS_SECRET_KEY)
                 b = conn.get_bucket(BUCKET_NAME)
                 from boto.s3.key import Key
                 k = Key(b)
                 return k
-	@staticmethod
-	def checkUrl(url):
-		p = urlparse(url)
-		h = HTTP(p[1])
-		h.putrequest('HEAD', p[2])
-		h.endheaders()
-		if h.getreply()[0] != 404:
-			return True
-		return False
 
 settings = {'static_path': os.path.join(os.path.dirname(__file__), "static")}
 application=tornado.web.Application([
