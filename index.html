@@ -6,13 +6,10 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <script type="text/javascript">
 interval = null;
-form_submitted=false;
 
 function openProgressBar() {
-	if (form_submitted){
-		alert('Upload in progress please be patient :)');
-		return false;
-	}
+	/* prevent resubmit */
+	document.forms['upload'].submit.disabled= true;
 	/* reset progress bar */
         bar = document.getElementById('progressbar');
         bar.style.width = '0px';
@@ -21,8 +18,6 @@ function openProgressBar() {
 		alert('Must select file before upload');
 		return false;
 	}
-	/* prevent resubmit */
-	form_submitted = true;
         /* generate random progress-id */
         uuid = "";
         for (i = 0; i < 32; i++) {
@@ -33,7 +28,6 @@ function openProgressBar() {
 
         /* call the progress-updater every 1000ms */
         interval = window.setInterval( function () {  fetch(uuid);  }, 1000 );
-	form_submitted = false;
 }
 
 function fetch(uuid) {
@@ -67,14 +61,28 @@ function fetch(uuid) {
                                         sendTitle();
                                 }
 				if (upload.state == 'error' && upload.status == '413'){
+                                        window.clearTimeout(interval);
 					document.getElementById('response').innerHTML = 'Exceeded max upload size';
-					form_submitted = false;
-					return;
+					/* enable form submit */
+					document.forms['upload'].submit.disabled= false;
+					/* reset upload stream */
+					document.getElementById('uploadframe').src='about:blank';
 				}
-				if (upload.state == 'error'){
-					document.getElementById('response').innerHTML = 'Unhandled error:'+upload.status;
-					form_submitted = false;
-					return;
+				else if (upload.state == 'error' && parseInt(upload.status) > 420 ){
+                                        window.clearTimeout(interval);
+					document.getElementById('response').innerHTML = 'Upload canceled:'+upload.status;
+					/* enable form submit */
+					document.forms['upload'].submit.disabled= false;
+					/* reset upload stream */
+					document.getElementById('uploadframe').src='about:blank';
+				}
+				else if (upload.state == 'error'){
+                                        window.clearTimeout(interval);
+					document.getElementById('response').innerHTML = 'Unhandled error:'+upload.status+' length:'+upload.status.length;
+					/* enable form submit */
+					document.forms['upload'].submit.disabled= false;
+					/* reset upload stream */
+					document.getElementById('uploadframe').src='about:blank';
 				}
 				
                         }
@@ -93,7 +101,8 @@ function sendTitle(){
 
                 req.send(null);
                 document.getElementById('response').innerHTML=req.responseText;
-		form_submitted = false;
+		/* enable form submit */
+		document.forms['upload'].submit.disabled= false;
 }
 </script>
 </head>
@@ -104,7 +113,7 @@ function sendTitle(){
 <div style="display: block" >
 	<div style="margin-bottom: 20px"><label for="title"><input id="title" name="title" type="text" size="45px" /></label></div>
 	<div style="margin-bottom: 30px"><input id="media_file" name="media_file" type="file"/></div>
-	<div><input type="submit" value="Upload"/></div>
+	<div><input type="submit" name="submit" value="Upload"/></div>
 </div>
 </form>
 

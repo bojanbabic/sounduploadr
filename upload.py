@@ -12,7 +12,7 @@ from httplib import HTTP
 from urlparse import urlparse
 
 config = ConfigParser.ConfigParser()
-config.read('config.ini')
+config.read('/var/www/sounduploadr/config.ini')
 
 AWS_ACCESS_KEY=config.get('s3','AWS_ACCESS_KEY')
 AWS_SECRET_KEY=config.get('s3','AWS_SECRET_KEY')
