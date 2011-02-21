@@ -5,6 +5,14 @@
 <title>Test for Soundcloud:File Upload Progress</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <script type="text/javascript">
+if( !window.XMLHttpRequest ) XMLHttpRequest = function()
+     {
+        try{ return new ActiveXObject("Msxml2.XMLHTTP.6.0") }catch(e){}
+        try{ return new ActiveXObject("Msxml2.XMLHTTP.3.0") }catch(e){}
+        try{ return new ActiveXObject("Msxml2.XMLHTTP") }catch(e){}
+        try{ return new ActiveXObject("Microsoft.XMLHTTP") }catch(e){}
+        throw new Error("Could not find an XMLHttpRequest alternative.")
+     };
 interval = null;
 
 function openProgressBar() {
