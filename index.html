@@ -70,7 +70,7 @@ function fetch(uuid) {
 				}
 				else if (upload.state == 'error' && parseInt(upload.status) > 420 ){
                                         window.clearTimeout(interval);
-					document.getElementById('response').innerHTML = 'Upload canceled:'+upload.status;
+					document.getElementById('response').innerHTML = 'Upload canceled';
 					/* enable form submit */
 					document.forms['upload'].submit.disabled= false;
 					/* reset upload stream */
@@ -78,7 +78,7 @@ function fetch(uuid) {
 				}
 				else if (upload.state == 'error'){
                                         window.clearTimeout(interval);
-					document.getElementById('response').innerHTML = 'Unhandled error:'+upload.status+' length:'+upload.status.length;
+					document.getElementById('response').innerHTML = 'Unhandled error:'+upload.status;
 					/* enable form submit */
 					document.forms['upload'].submit.disabled= false;
 					/* reset upload stream */
