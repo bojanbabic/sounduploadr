@@ -35,7 +35,7 @@ function openProgressBar() {
         document.getElementById("upload").action="/uload?X-Progress-ID=" + uuid;
 
         /* call the progress-updater every 1000ms */
-        interval = window.setInterval( function () {  fetch(uuid);  }, 1000 );
+        interval = window.setInterval( function () {  fetch(uuid);  }, 2000 );
 }
 
 function fetch(uuid) {
